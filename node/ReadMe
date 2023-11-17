@@ -1,0 +1,45 @@
+// 安装依赖包
+npm run start
+---bin
+    www 启动入口文件
+--- public 静态资源目录
+--- routes 路由目录
+--- 模板文件
+--- app.js 主文件
+--- package.json 依赖包管理文件
+
+// 可以安装 nodemon 来监控 node.js 源代码的任何变化和自动重启你的服务器
+ 全局安装 nodemon:
+npm install -g nodemon
+启动项目
+nodemon bin/www
+
+
+添加打印日志文件
+这里采用的是 winston 日志
+具体用法可看文档：www.npmjs.com/package/win…
+安装 winston
+npm i winston
+配置打印日志格式
+在项目的根目录添加一个配置打印日志格式的文件 logger.js （此文件在 github 上）
+
+
+// 需要数据库
+npm i mysql -D 进行安装
+
+// nodejs 安装 postgres
+npm install pg@8.7.3
+https://www.51cto.com/article/712369.html
+node-postgres 模块需要以下值才能连接到 PostgreSQL 数据库：
+
+PGUSER – 要连接的 PostgreSQL 用户名。
+PGHOST – 要连接的服务器主机的名称。
+PGPASSWORD – PostgreSQL 服务器的密码。
+PGD​​ATABASE – 您要连接的数据库的名称。
+PGPORT – 在服务器主机上连接的端口号。
+创建一个 .env 文件并添加这些变量，替换数据库中的相应值：
+
+
+
+
+
