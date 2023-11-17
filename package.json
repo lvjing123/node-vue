@@ -1,0 +1,49 @@
+{
+  "name": "vite-vue-ts-seed",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "ts": "vue-tsc --noEmit",
+    "lint": "eslint src --fix --ext .ts,.tsx,.vue,.js,.jsx --max-warnings 0"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.1.0",
+    "@intlify/vite-plugin-vue-i18n": "^7.0.0",
+    "@types/crypto-js": "^4.1.1",
+    "@types/qs": "^6.9.7",
+    "@vitejs/plugin-vue-jsx": "^3.0.1",
+    "axios": "^1.4.0",
+    "crypto-js": "^4.1.1",
+    "element-plus": "^2.3.6",
+    "pinia": "^2.1.4",
+    "qs": "^6.11.2",
+    "socket.io-client": "^4.6.2",
+    "vite-plugin-compression": "^0.5.1",
+    "vue": "^3.2.47",
+    "vue-i18n": "^9.2.2",
+    "vue-router": "^4.2.2",
+    "vue-virtual-scroll-list": "^2.3.5",
+    "vue3-virtual-scroll-list": "^0.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "@typescript-eslint/eslint-plugin": "^5.59.11",
+    "@typescript-eslint/parser": "^5.59.11",
+    "@vitejs/plugin-vue": "^4.1.0",
+    "eslint": "^8.42.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-vue": "^9.14.1",
+    "prettier": "^2.8.8",
+    "sass": "^1.63.4",
+    "typescript": "^5.0.2",
+    "unplugin-auto-import": "^0.16.4",
+    "unplugin-vue-components": "^0.25.1",
+    "vite": "^4.3.9",
+    "vue-tsc": "^1.4.2"
+  }
+}
