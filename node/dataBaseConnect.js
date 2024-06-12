@@ -16,7 +16,7 @@ module.exports = async(sql) => {
         user: 'postgres',
         host: 'localhost',
         database: 'node',
-        password: '2161105452',
+        password: 'pwd',
         port: '5432'
     })
     await client.connect()

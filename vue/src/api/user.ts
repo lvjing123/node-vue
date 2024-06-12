@@ -5,7 +5,7 @@ import { http } from '@/utils/http'
 export function refreshTokenFuc(refreshToken: string) {
     return http.request(
       {
-        url: '/account/token/refresh',
+        url: '/token/refresh',
         method: 'POST',
         params: {
           refreshToken,
@@ -20,7 +20,7 @@ export function refreshTokenFuc(refreshToken: string) {
   
   export function checkLoginStatus() {
     return http.request({
-      url: `/account/profile`,
+      url: `/profile`,
       method: 'get',
     })
   }

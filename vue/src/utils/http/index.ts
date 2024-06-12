@@ -67,36 +67,9 @@ export const responseInterceptorsCatch = (error: any) => {
   // 请求是否被取消
   const isCancel = axios.isCancel(error)
   if (!isCancel) {
-    if (response.data.code === 3001) {
-      router.push({ name: 'org-manage' })
-    }
-    if (response.data.code === 4000) {
-      const urlArr = response.config.url.split('/')
-      router.push({ path: `/org/${urlArr[3]}/overview` })
-      router.push({ path: '/login' })
-    }
-    if (response.data.code === 5000) {
-      const urlArr = response.config.url.split('/')
-      router.push({ path: `/project/${urlArr[3]}/${urlArr[5]}/overview` })
-    }
-    // TODO refresh token
-    if (response.config.url === '/api/account/login') {
-      return Promise.reject(error)
-    }
     if (msg && response.status !== 401) {
       if (response.status === 403) {
-        // 分两种情况
-        const { method } = response.config
-        // 情况1 同一个浏览器，tab1登录了超级管理员，随后tab2再登录了用户，现在去tab1,提示无访问权限
-        // 情况2 例如边缘服务的页面
-        //可以根据 method 来判断
-        if (method == 'get') {
-          //页面跳转到无权限页。
-          // router.push('/noauth')
-        } else {
-          // 提示无访问权限
-          checkStatus(error.response && error.response.status, msg)
-        }
+        checkStatus(error.response && error.response.status, msg)
       }
     }
     if (response.config.url.includes('token/refresh')) {
@@ -106,80 +79,72 @@ export const responseInterceptorsCatch = (error: any) => {
     if (response.status === 401) {
       if (decryptedLocalStorage(ACCESS_TOKEN)[ACCESS_TOKEN]) {
         // eslint-disable-next-line no-empty
-        if (response.config.url === '/api/account/login') {
-        } else if (response?.data.code === 6000) {
-          // 用户记录不存在
-          // 切换后端的环境，此时应该清除登录的信息 再跳转到登录页
-          userStore.logout()
-          router.push({ path: `/login` })
-        } else {
-          const { config } = error
-          if (!isRefreshing) {
-            isRefreshing = true
-            const userStore = useUserStoreWidthOut()
-            const refreshToken = userStore.getRefreshToken
-            const toLogin = () => {
-              $message.destroyAll()
-              userStore.logout()
-              setTimeout(() => {
-                router.push({ path: `/login` })
-              }, 2000)
-            }
-            return refreshTokenFuc(refreshToken)
-              .then(async (res: any) => {
-                const { accessToken, refreshToken } = res
-                if (accessToken) {
-                  encryptedLocalStorage(ACCESS_TOKEN, {
-                    ACCESS: accessToken,
-                  })
-                  encryptedLocalStorage(REFRESH_TOKEN, {
-                    REFRESH: refreshToken,
-                  })
+        const { config } = error
+        if (!isRefreshing) {
+          isRefreshing = true
+          const userStore = useUserStoreWidthOut()
+          const refreshToken = userStore.getRefreshToken
+          const toLogin = () => {
+            $message.destroyAll()
+            userStore.logout()
+            setTimeout(() => {
+              router.push({ path: `/login` })
+            }, 2000)
+          }
+          return refreshTokenFuc(refreshToken)
+            .then(async (res: any) => {
+              const { accessToken, refreshToken } = res
+              if (accessToken) {
+                encryptedLocalStorage(ACCESS_TOKEN, {
+                  ACCESS: accessToken,
+                })
+                encryptedLocalStorage(REFRESH_TOKEN, {
+                  REFRESH: refreshToken,
+                })
+                encryptedLocalStorage(CURRENT_USER, {
+                  USER: res,
+                })
+                userStore.setToken(accessToken)
+                userStore.setRefreshToken(refreshToken)
+                try {
+                  const data = await checkLoginStatus()
+                  //todo 可能要设置 admin,在 transfer getAllUser 函数中有判断
+                  const userInfo = decryptedLocalStorage(CURRENT_USER)[CURRENT_USER]
+                  userInfo.admin = data.admin
                   encryptedLocalStorage(CURRENT_USER, {
-                    USER: res,
+                    USER: userInfo,
                   })
-                  userStore.setToken(accessToken)
-                  userStore.setRefreshToken(refreshToken)
-                  try {
-                    const data = await checkLoginStatus()
-                    //todo 可能要设置 admin,在 transfer getAllUser 函数中有判断
-                    const userInfo = decryptedLocalStorage(CURRENT_USER)[CURRENT_USER]
-                    userInfo.admin = data.admin
-                    encryptedLocalStorage(CURRENT_USER, {
-                      USER: userInfo,
-                    })
-                    userStore.setUserInfo(userInfo)
+                  userStore.setUserInfo(userInfo)
 
-                    config.headers.Authorization = `Bearer ${accessToken}`
-                    // token 刷新后将数组的方法重新执行
-                    requests.forEach((cb) => cb(accessToken))
-                    requests = [] // 重新请求完清空
-                    config.url = config.url.replace(/^\/api/, '')
-                    return http.request(config, { isReturnNativeResponse: true })
-                  } catch (error) {
-                    toLogin()
-                  }
-                } else {
+                  config.headers.Authorization = `Bearer ${accessToken}`
+                  // token 刷新后将数组的方法重新执行
+                  requests.forEach((cb) => cb(accessToken))
+                  requests = [] // 重新请求完清空
+                  config.url = config.url.replace(/^\/api/, '')
+                  return http.request(config, { isReturnNativeResponse: true })
+                } catch (error) {
                   toLogin()
                 }
-              })
-              .catch(() => {
+              } else {
                 toLogin()
-              })
-              .finally(() => {
-                isRefreshing = false
-              })
-          } else {
-            // 返回未执行 resolve 的 Promise
-            return new Promise((resolve) => {
-              // 用函数形式将 resolve 存入，等待刷新后再执行
-              requests.push((token: string) => {
-                config.headers.Authorization = `Bearer ${token}`
-                config.url = config.url.replace(/^\/api/, '')
-                resolve(http.request(config, { isReturnNativeResponse: true }))
-              })
+              }
             })
-          }
+            .catch(() => {
+              toLogin()
+            })
+            .finally(() => {
+              isRefreshing = false
+            })
+        } else {
+          // 返回未执行 resolve 的 Promise
+          return new Promise((resolve) => {
+            // 用函数形式将 resolve 存入，等待刷新后再执行
+            requests.push((token: string) => {
+              config.headers.Authorization = `Bearer ${token}`
+              config.url = config.url.replace(/^\/api/, '')
+              resolve(http.request(config, { isReturnNativeResponse: true }))
+            })
+          })
         }
       } else {
         //  todo ,浏览器开了两个窗口，同一个用户在其中一个窗口退出登录，清除了token，另外一个窗口的接口401，直接跳转到登录
@@ -293,7 +258,6 @@ const transform: AxiosTransform = {
         // 给 get 请求加上时间戳参数，避免从缓存中拿数据。
         config.params = Object.assign(params || {}, joinTimestamp(joinTime, false))
       } else {
-        // 兼容restful风格
         config.url = config.url + params + `${joinTimestamp(joinTime, true)}`
         config.params = undefined
       }
@@ -325,16 +289,6 @@ const transform: AxiosTransform = {
   requestInterceptors: (config: Recordable, options) => {
     // 请求之前处理config
     const token = decryptedLocalStorage(ACCESS_TOKEN)[ACCESS_TOKEN]
-    const acceptDesc = config?.requestOptions?.acceptDesc
-    if (acceptDesc) {
-      config.headers.Accept = `vnd.emqx.${acceptDesc}.v1+json`
-    }
-    if (config.requestOptions.isEkuiper) {
-      config.url = `/api/edgeservice/proxy/${location.hash.split('/')[5]}${config.url.replace('/api', '')}`
-    }
-    if (config.url.includes('/v2')) {
-      config.url = `/api/edgeservice/proxy/${location.hash.split('/')[5]}${config.url}`
-    }
     if (token && config?.requestOptions?.withToken !== false) {
       // jwt token
       config.headers.Authorization = options.authenticationScheme ? `${options.authenticationScheme} ${token}` : token
